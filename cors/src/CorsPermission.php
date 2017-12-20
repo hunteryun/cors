@@ -19,7 +19,7 @@ class CorsPermission {
    * Constructs a cors config.
    */
   public function __construct() {
-    $this->allowed_origins = config('cors')->get('allowed_origins');
+    $this->allowed_origins = config('cors.cors')->get('allowed_origins');
   }
 
   /**
