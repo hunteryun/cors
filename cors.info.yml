@@ -1,0 +1,5 @@
+name: Cors
+type: module
+description: enabling cross-origin resource sharing.
+core: 1.x
+package: Hunter

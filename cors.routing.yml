@@ -1,0 +1,16 @@
+cors.corssetting_cors_setting:
+  path: '/admin/cors/setting'
+  defaults:
+    _controller: '\Hunter\cors\Controller\CorsSettingController::cors_setting'
+    _title: 'Cors Setting'
+  requirements:
+    _permission: 'access admin page'
+  
+cors.corssetting_cors_settting_submit:
+  path: '/admin/cors/setting/submit'
+  defaults:
+    _controller: '\Hunter\cors\Controller\CorsSettingController::cors_settting_submit'
+    _title: 'Cors Setting Submit'
+  requirements:
+    _permission: 'access admin page'
+  

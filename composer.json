@@ -1,0 +1,5 @@
+{
+    "require": {
+        "neomerx/cors-psr7": "^1.0"
+    }
+}
