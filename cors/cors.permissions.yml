@@ -1,4 +1,3 @@
 cors:
   title: 'Cors'
   _callback: 'Hunter\cors\CorsPermission'
-

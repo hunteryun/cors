@@ -2,66 +2,41 @@
 
 namespace Hunter\cors;
 
+use Hunter\Http\Response;
+use Hunter\Middleware\DelegateInterface;
+use Hunter\Middleware\Middleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Neomerx\Cors\Analyzer;
-use Neomerx\Cors\Contracts\AnalysisResultInterface;
-use Neomerx\Cors\Strategies\Settings;
+use Medz\Cors\Cors;
 
 /**
  * Provides cors module permission auth.
  */
-class CorsPermission {
-
-  protected $allowed_origins;
-
-  /**
-   * Constructs a cors config.
-   */
-  public function __construct() {
-    $this->allowed_origins = config('cors.cors')->get('allowed_origins');
-  }
+class CorsPermission extends Middleware {
 
   /**
    * Returns bool value of cors permission.
    *
    * @return bool
    */
-  public function handle(ServerRequestInterface $request, ResponseInterface $response, callable $next) {
-    $settings = new Settings();
-    $settings->setRequestAllowedOrigins($this->allowed_origins);
+   public function handle(ServerRequestInterface $request, DelegateInterface $next) {
+     $allowed_origins = variable_get('allowed_origins', array());
+     $response = $next->process($request);
+     $config = [
+        'allow-credentials' => false, // set "Access-Control-Allow-Credentials" 👉 string "false" or "true".
+        'allow-headers'      => ['Origin', 'Content-Type', 'Cookie', 'Accept'], // ex: Content-Type, Accept, X-Requested-With
+        'expose-headers'     => [],
+        'origins'            => array_keys($allowed_origins), // ex: http://localhost
+        'methods'            => ['GET','POST','PUT','DELETE'], // ex: GET, POST, PUT, PATCH, DELETE
+        'max-age'            => 0,
+     ];
+     $cors = new Cors($config);
+     $cors->setRequest('psr-7', $request);
+     $cors->setResponse('psr-7', $response);
+     $cors->handle();
 
-    $cors = Analyzer::instance($settings)->analyze($request);
-    switch ($cors->getRequestType()) {
-        case AnalysisResultInterface::ERR_NO_HOST_HEADER:
-        case AnalysisResultInterface::ERR_ORIGIN_NOT_ALLOWED:
-        case AnalysisResultInterface::ERR_METHOD_NOT_SUPPORTED:
-        case AnalysisResultInterface::ERR_HEADERS_NOT_SUPPORTED:
-          return $response->withStatus(403);
-        case AnalysisResultInterface::TYPE_REQUEST_OUT_OF_CORS_SCOPE:
-          return $next($request, $response);
-        case AnalysisResultInterface::TYPE_PRE_FLIGHT_REQUEST:
-          $corsHeaders = $cors->getResponseHeaders();
-          foreach ($corsHeaders as $header => $value) {
-              /* Diactoros errors on integer values. */
-              if (!is_array($value)) {
-                  $value = (string)$value;
-              }
-              $response = $response->withHeader($header, $value);
-          }
-          return $response->withStatus(200);
-        default:
-          $response = $next($request, $response);
-          $corsHeaders = $cors->getResponseHeaders();
-          foreach ($corsHeaders as $header => $value) {
-              /* Diactoros errors on integer values. */
-              if (!is_array($value)) {
-                  $value = (string)$value;
-              }
-              $response = $response->withHeader($header, $value);
-          }
-          return $response;
-    }
+     $response = $cors->getResponse();
+     return $response;
   }
 
 }

@@ -1,5 +1,5 @@
 {
     "require": {
-        "neomerx/cors-psr7": "^1.0"
+        "medz/cors": "^1.4"
     }
 }
